@@ -552,9 +552,9 @@ describe('Scope', function() {
               expect(oldCollection.length).toEqual(1);
               expect(newCollection.length).toEqual(2);
 
-              expect(oldCollection[0]).toEqual(apples);
-              expect(newCollection[0]).toEqual(apples);
-              expect(newCollection[1]).toEqual(blackberries);
+              expect(oldCollection[0]).toBe(apples);
+              expect(newCollection[0]).toBe(apples);
+              expect(newCollection[1]).toBe(blackberries);
             }
           });
 
