@@ -364,179 +364,204 @@ describe('Scope', function() {
     }));
 
     describe('$watchCollection', function() {
-      var log, $rootScope, deregister;
+      describe('(newCollection tests)', function() {
+        var log, $rootScope, deregister;
 
-      beforeEach(inject(function(_$rootScope_) {
-        log = [];
-        $rootScope = _$rootScope_;
-        deregister = $rootScope.$watchCollection('obj', function logger(obj) {
-          log.push(toJson(obj));
-        });
-      }));
-
-
-      it('should not trigger if nothing change', inject(function($rootScope) {
-        $rootScope.$digest();
-        expect(log).toEqual([undefined]);
-
-        $rootScope.$digest();
-        expect(log).toEqual([undefined]);
-      }));
+        beforeEach(inject(function(_$rootScope_) {
+          log = [];
+          $rootScope = _$rootScope_;
+          deregister = $rootScope.$watchCollection('obj', function logger(newCollection) {
+            log.push(toJson(newCollection));
+          });
+        }));
 
 
-      it('should allow deregistration', inject(function($rootScope) {
-        $rootScope.obj = [];
-        $rootScope.$digest();
-
-        expect(log).toEqual(['[]']);
-
-        $rootScope.obj.push('a');
-        deregister();
-
-        $rootScope.$digest();
-        expect(log).toEqual(['[]']);
-      }));
-
-
-      describe('array', function() {
-        it('should trigger when property changes into array', function() {
-          $rootScope.obj = 'test';
+        it('should not trigger if nothing change', inject(function($rootScope) {
           $rootScope.$digest();
-          expect(log).toEqual(['"test"']);
+          expect(log).toEqual([undefined]);
 
+          $rootScope.$digest();
+          expect(log).toEqual([undefined]);
+        }));
+
+
+        it('should allow deregistration', inject(function($rootScope) {
           $rootScope.obj = [];
           $rootScope.$digest();
-          expect(log).toEqual(['"test"', '[]']);
 
-          $rootScope.obj = {};
-          $rootScope.$digest();
-          expect(log).toEqual(['"test"', '[]', '{}']);
-
-          $rootScope.obj = [];
-          $rootScope.$digest();
-          expect(log).toEqual(['"test"', '[]', '{}', '[]']);
-
-          $rootScope.obj = undefined;
-          $rootScope.$digest();
-          expect(log).toEqual(['"test"', '[]', '{}', '[]', undefined]);
-        });
-
-
-        it('should not trigger change when object in collection changes', function() {
-          $rootScope.obj = [{}];
-          $rootScope.$digest();
-          expect(log).toEqual(['[{}]']);
-
-          $rootScope.obj[0].name = 'foo';
-          $rootScope.$digest();
-          expect(log).toEqual(['[{}]']);
-        });
-
-
-        it('should watch array properties', function() {
-          $rootScope.obj = [];
-          $rootScope.$digest();
           expect(log).toEqual(['[]']);
 
           $rootScope.obj.push('a');
-          $rootScope.$digest();
-          expect(log).toEqual(['[]', '["a"]']);
+          deregister();
 
-          $rootScope.obj[0] = 'b';
           $rootScope.$digest();
-          expect(log).toEqual(['[]', '["a"]', '["b"]']);
+          expect(log).toEqual(['[]']);
+        }));
 
-          $rootScope.obj.push([]);
-          $rootScope.obj.push({});
-          log = [];
-          $rootScope.$digest();
-          expect(log).toEqual(['["b",[],{}]']);
 
-          var temp = $rootScope.obj[1];
-          $rootScope.obj[1] = $rootScope.obj[2];
-          $rootScope.obj[2] = temp;
-          $rootScope.$digest();
-          expect(log).toEqual([ '["b",[],{}]', '["b",{},[]]' ]);
+        describe('array', function() {
+          it('should trigger when property changes into array', function() {
+            $rootScope.obj = 'test';
+            $rootScope.$digest();
+            expect(log).toEqual(['"test"']);
 
-          $rootScope.obj.shift()
-          log = [];
-          $rootScope.$digest();
-          expect(log).toEqual([ '[{},[]]' ]);
-        });
+            $rootScope.obj = [];
+            $rootScope.$digest();
+            expect(log).toEqual(['"test"', '[]']);
 
-        it('should watch array-like objects like arrays', function () {
-          var arrayLikelog = [];
-          $rootScope.$watchCollection('arrayLikeObject', function logger(obj) {
-            forEach(obj, function (element){
-              arrayLikelog.push(element.name);
-            })
+            $rootScope.obj = {};
+            $rootScope.$digest();
+            expect(log).toEqual(['"test"', '[]', '{}']);
+
+            $rootScope.obj = [];
+            $rootScope.$digest();
+            expect(log).toEqual(['"test"', '[]', '{}', '[]']);
+
+            $rootScope.obj = undefined;
+            $rootScope.$digest();
+            expect(log).toEqual(['"test"', '[]', '{}', '[]', undefined]);
           });
-          document.body.innerHTML = "<p>" +
-                                      "<a name='x'>a</a>" +
-                                      "<a name='y'>b</a>" +
-                                    "</p>";
 
-          $rootScope.arrayLikeObject =  document.getElementsByTagName('a')
-          $rootScope.$digest();
-          expect(arrayLikelog).toEqual(['x', 'y']);
+
+          it('should not trigger change when object in collection changes', function() {
+            $rootScope.obj = [{}];
+            $rootScope.$digest();
+            expect(log).toEqual(['[{}]']);
+
+            $rootScope.obj[0].name = 'foo';
+            $rootScope.$digest();
+            expect(log).toEqual(['[{}]']);
+          });
+
+
+          it('should watch array properties', function() {
+            $rootScope.obj = [];
+            $rootScope.$digest();
+            expect(log).toEqual(['[]']);
+
+            $rootScope.obj.push('a');
+            $rootScope.$digest();
+            expect(log).toEqual(['[]', '["a"]']);
+
+            $rootScope.obj[0] = 'b';
+            $rootScope.$digest();
+            expect(log).toEqual(['[]', '["a"]', '["b"]']);
+
+            $rootScope.obj.push([]);
+            $rootScope.obj.push({});
+            log = [];
+            $rootScope.$digest();
+            expect(log).toEqual(['["b",[],{}]']);
+
+            var temp = $rootScope.obj[1];
+            $rootScope.obj[1] = $rootScope.obj[2];
+            $rootScope.obj[2] = temp;
+            $rootScope.$digest();
+            expect(log).toEqual([ '["b",[],{}]', '["b",{},[]]' ]);
+
+            $rootScope.obj.shift()
+            log = [];
+            $rootScope.$digest();
+            expect(log).toEqual([ '[{},[]]' ]);
+          });
+
+          it('should watch array-like objects like arrays', function () {
+            var arrayLikelog = [];
+            $rootScope.$watchCollection('arrayLikeObject', function logger(obj) {
+              forEach(obj, function (element){
+                arrayLikelog.push(element.name);
+              })
+            });
+            document.body.innerHTML = "<p>" +
+                                        "<a name='x'>a</a>" +
+                                        "<a name='y'>b</a>" +
+                                      "</p>";
+
+            $rootScope.arrayLikeObject =  document.getElementsByTagName('a')
+            $rootScope.$digest();
+            expect(arrayLikelog).toEqual(['x', 'y']);
+          });
+        });
+
+
+        describe('object', function() {
+          it('should trigger when property changes into object', function() {
+            $rootScope.obj = 'test';
+            $rootScope.$digest();
+            expect(log).toEqual(['"test"']);
+
+            $rootScope.obj = {};
+            $rootScope.$digest();
+            expect(log).toEqual(['"test"', '{}']);
+          });
+
+
+          it('should not trigger change when object in collection changes', function() {
+            $rootScope.obj = {name: {}};
+            $rootScope.$digest();
+            expect(log).toEqual(['{"name":{}}']);
+
+            $rootScope.obj.name.bar = 'foo';
+            $rootScope.$digest();
+            expect(log).toEqual(['{"name":{}}']);
+          });
+
+
+          it('should watch object properties', function() {
+            $rootScope.obj = {};
+            $rootScope.$digest();
+            expect(log).toEqual(['{}']);
+
+            $rootScope.obj.a= 'A';
+            $rootScope.$digest();
+            expect(log).toEqual(['{}', '{"a":"A"}']);
+
+            $rootScope.obj.a = 'B';
+            $rootScope.$digest();
+            expect(log).toEqual(['{}', '{"a":"A"}', '{"a":"B"}']);
+
+            $rootScope.obj.b = [];
+            $rootScope.obj.c = {};
+            log = [];
+            $rootScope.$digest();
+            expect(log).toEqual(['{"a":"B","b":[],"c":{}}']);
+
+            var temp = $rootScope.obj.a;
+            $rootScope.obj.a = $rootScope.obj.b;
+            $rootScope.obj.c = temp;
+            $rootScope.$digest();
+            expect(log).toEqual([ '{"a":"B","b":[],"c":{}}', '{"a":[],"b":[],"c":"B"}' ]);
+
+            delete $rootScope.obj.a;
+            log = [];
+            $rootScope.$digest();
+            expect(log).toEqual([ '{"b":[],"c":"B"}' ]);
+          })
         });
       });
 
+      describe('newCollection and oldCollection', function() {
+        it('should have different contents', inject(function($rootScope) {
+          var apples = {'item': 'apples'};
+          var blackberries = {'item': 'blackberries'};
 
-      describe('object', function() {
-        it('should trigger when property changes into object', function() {
-          $rootScope.obj = 'test';
-          $rootScope.$digest();
-          expect(log).toEqual(['"test"']);
+          $rootScope.obj = [apples];
 
-          $rootScope.obj = {};
-          $rootScope.$digest();
-          expect(log).toEqual(['"test"', '{}']);
-        });
+          $rootScope.$watchCollection('obj', function(newCollection, oldCollection) {
+            if (oldCollection) {
+              expect(oldCollection.length).toEqual(1);
+              expect(newCollection.length).toEqual(2);
 
+              expect(oldCollection[0]).toEqual(apples);
+              expect(newCollection[0]).toEqual(apples);
+              expect(newCollection[1]).toEqual(blackberries);
+            }
+          });
 
-        it('should not trigger change when object in collection changes', function() {
-          $rootScope.obj = {name: {}};
-          $rootScope.$digest();
-          expect(log).toEqual(['{"name":{}}']);
-
-          $rootScope.obj.name.bar = 'foo';
-          $rootScope.$digest();
-          expect(log).toEqual(['{"name":{}}']);
-        });
-
-
-        it('should watch object properties', function() {
-          $rootScope.obj = {};
-          $rootScope.$digest();
-          expect(log).toEqual(['{}']);
-
-          $rootScope.obj.a= 'A';
-          $rootScope.$digest();
-          expect(log).toEqual(['{}', '{"a":"A"}']);
-
-          $rootScope.obj.a = 'B';
-          $rootScope.$digest();
-          expect(log).toEqual(['{}', '{"a":"A"}', '{"a":"B"}']);
-
-          $rootScope.obj.b = [];
-          $rootScope.obj.c = {};
-          log = [];
-          $rootScope.$digest();
-          expect(log).toEqual(['{"a":"B","b":[],"c":{}}']);
-
-          var temp = $rootScope.obj.a;
-          $rootScope.obj.a = $rootScope.obj.b;
-          $rootScope.obj.c = temp;
-          $rootScope.$digest();
-          expect(log).toEqual([ '{"a":"B","b":[],"c":{}}', '{"a":[],"b":[],"c":"B"}' ]);
-
-          delete $rootScope.obj.a;
-          log = [];
-          $rootScope.$digest();
-          expect(log).toEqual([ '{"b":[],"c":"B"}' ]);
-        })
-      });
+          $rootScope.obj.push(blackberries);
+          $rootScope.digest();
+        }))
+      })
     });
   });
 
