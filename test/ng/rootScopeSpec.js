@@ -545,8 +545,13 @@ describe('Scope', function() {
           var apples = {'item': 'apples'};
           var blackberries = {'item': 'blackberries'};
 
+          // use a spy to make sure the expectations are checked
+          var spy = jasmine.createSpy();
+
           $rootScope.$watchCollection('obj', function(newCollection, oldCollection) {
             if (oldCollection && !angular.equals(oldCollection, newCollection)) {
+              spy();
+
               expect(oldCollection.length).toEqual(1);
               expect(newCollection.length).toEqual(2);
 
@@ -561,6 +566,8 @@ describe('Scope', function() {
 
           $rootScope.obj.push(blackberries);
           $rootScope.$digest();
+
+          expect(spy).toHaveBeenCalledOnce();
         }))
       })
     });
