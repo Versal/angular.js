@@ -95,7 +95,7 @@ describe('angular', function() {
 
     it('should throw an exception when source and destination are equivalent', function() {
       var src, dst;
-	    src = dst = {key: 'value'};
+        src = dst = {key: 'value'};
       expect(function() { copy(src, dst); }).toThrow("[NgErr44] Can't copy! Source and destination are identical.");
       src = dst = [2, 4];
       expect(function() { copy(src, dst); }).toThrow("[NgErr44] Can't copy! Source and destination are identical.");
@@ -269,6 +269,11 @@ describe('angular', function() {
       expect(equals(new Date(0), new Date(1))).toBe(false);
       expect(equals(new Date(0), 0)).toBe(false);
       expect(equals(0, new Date(0))).toBe(false);
+    });
+
+    it('should return false when comparing an object and an array', function() {
+      expect(equals({}, [])).toBe(false);
+      expect(equals([], {})).toBe(false);
     });
   });
 
