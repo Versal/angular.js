@@ -315,6 +315,9 @@ function $RootScopeProvider(){
        * - The `listener` is called whenever anything within the `obj` has changed. Examples include adding new items
        *   into the object or array, removing and moving items around.
        *
+       * Like {@link ng.$rootScope.Scope#$watch $watch()}, $watchCollection can sometimes call `listener` when the
+       * expression didn't change.  To detect this scenario within the `listener` function, you can use
+       * `angular.equals(oldCollection, newCollection)`.
        *
        * # Example
        * <pre>

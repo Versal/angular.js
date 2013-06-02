@@ -545,10 +545,8 @@ describe('Scope', function() {
           var apples = {'item': 'apples'};
           var blackberries = {'item': 'blackberries'};
 
-          $rootScope.obj = [apples];
-
           $rootScope.$watchCollection('obj', function(newCollection, oldCollection) {
-            if (oldCollection) {
+            if (oldCollection && !angular.equals(oldCollection, newCollection)) {
               expect(oldCollection.length).toEqual(1);
               expect(newCollection.length).toEqual(2);
 
@@ -558,8 +556,11 @@ describe('Scope', function() {
             }
           });
 
+          $rootScope.obj = [apples];
+          $rootScope.$digest();
+
           $rootScope.obj.push(blackberries);
-          $rootScope.digest();
+          $rootScope.$digest();
         }))
       })
     });
