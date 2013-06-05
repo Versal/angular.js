@@ -416,17 +416,6 @@ function $RootScopeProvider(){
             return;
           }
 
-          /* TODO:
-           *
-           *  - Find a way to stop calling listener for no damned reason:
-           *    - Try checking newChangeNumber against oldChangeNumber
-           *    - If that doesn't work, try setting a boolean in watchCollectionWatch and testing it in watchCollectionAction
-           *
-           *  - Keep the types the same between oldCollection and newCollection.  If you can't find a good way to do that
-           *    in Angular, try setting the prototypes to be the same.  This isn't perfect (the objects won't have internal
-           *    state), but it's closer.  If neither of these work, you can try casting newCollection to the same type as oldCollection
-           *    and comparing them before calling listener.
-           */
           var newLength, key, i;
 
           listener(newValue, oldValue, self);
