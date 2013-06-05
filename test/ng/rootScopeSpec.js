@@ -370,7 +370,7 @@ describe('Scope', function() {
         beforeEach(inject(function(_$rootScope_) {
           log = [];
           $rootScope = _$rootScope_;
-          deregister = $rootScope.$watchCollection('obj', function logger(newCollection) {
+          deregister = $rootScope.$watchCollection('obj', function logger(newCollection, oldCollection) {
             log.push(toJson(newCollection));
           });
         }));
@@ -378,10 +378,10 @@ describe('Scope', function() {
 
         it('should not trigger if nothing change', inject(function($rootScope) {
           $rootScope.$digest();
-          expect(log).toEqual([undefined]);
+          expect(log).toEqual([]);
 
           $rootScope.$digest();
-          expect(log).toEqual([undefined]);
+          expect(log).toEqual([]);
         }));
 
 
@@ -466,10 +466,10 @@ describe('Scope', function() {
           });
 
           it('should watch array-like objects like arrays', function () {
-            var arrayLikelog = [];
-            $rootScope.$watchCollection('arrayLikeObject', function logger(obj) {
-              forEach(obj, function (element){
-                arrayLikelog.push(element.name);
+            var arrayLikeLog = [];
+            $rootScope.$watchCollection('arrayLikeObject', function logger(newCollection, oldCollection) {
+              forEach(newCollection, function (element){
+                arrayLikeLog.push(element.name);
               })
             });
             document.body.innerHTML = "<p>" +
@@ -479,7 +479,7 @@ describe('Scope', function() {
 
             $rootScope.arrayLikeObject =  document.getElementsByTagName('a')
             $rootScope.$digest();
-            expect(arrayLikelog).toEqual(['x', 'y']);
+            expect(arrayLikeLog).toEqual(['x', 'y']);
           });
         });
 
@@ -529,6 +529,7 @@ describe('Scope', function() {
             var temp = $rootScope.obj.a;
             $rootScope.obj.a = $rootScope.obj.b;
             $rootScope.obj.c = temp;
+
             $rootScope.$digest();
             expect(log).toEqual([ '{"a":"B","b":[],"c":{}}', '{"a":[],"b":[],"c":"B"}' ]);
 

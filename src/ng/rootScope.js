@@ -349,8 +349,13 @@ function $RootScopeProvider(){
        *
        * @param {function(newCollection, oldCollection, scope)} listener a callback function that is fired with both
        *    the `newCollection` and `oldCollection` as parameters.
-       *    The `newCollection` object is the newly modified data obtained from the `obj` expression and the
-       *    `oldCollection` object is a copy of the former collection data.
+       *
+       *    `newCollection` is the present result of the `obj` expression.  `oldCollection` is a copy of the what the result of
+       *    the `obj` expression was was when `$watchCollection` last called `listener`.  Because `oldCollection`
+       *    is a copy, its type may be different than `newCollection`'s:  If `oldCollection` was an Array-like object like
+       *    NodeList, its type will be an Array.  Otherwise, it will be a plain-old JavaScript object that contains the keys and
+       *    values that belonged to `newCollection` during the previous call.
+       *
        *    The `scope` refers to the current scope.
        *
        * @returns {function()} Returns a de-registration function for this listener. When the de-registration function is executed
@@ -367,20 +372,22 @@ function $RootScopeProvider(){
         var oldLength = 0;
 
         function $watchCollectionWatch() {
+          var i, newLength, keys, keysLength, key;
+
           newValue = objGetter(self);
 
-          if (!isObject(newValue) && oldValue !== newValue) {
-            return changeDetected++;
-          }
-
-          if (isArrayLike(newValue)) {
-            var newLength = newValue.length;
+          if (!isObject(newValue)) {
+            if (oldValue !== newValue) {
+              return changeDetected++;
+            }
+          } else if (isArrayLike(newValue)) {
+            newLength = newValue.length;
 
             if (oldValue !== internalArray || oldValue.length != newLength) {
               return changeDetected++;
             }
 
-            for (var i = 0; i < newLength; i++) {
+            for (i = 0; i < newLength; i++) {
               if (oldValue[i] !== newValue[i]) {
                 return changeDetected++;
               }
@@ -391,21 +398,36 @@ function $RootScopeProvider(){
               return changeDetected++;
             }
 
-            for (var key in newValue) {
-              if (
-                newValue.hasOwnProperty(key) &&
-                (!oldValue.hasOwnProperty(key) || oldValue[key] !== newValue[key])
-              ) {
+            keys = Object.keys(oldValue).concat(Object.keys(newValue))
+            keysLength = keys.length;
+
+            for (i = 0; i < keysLength; i++) {
+              key = keys[i];
+
+              if (oldValue[key] !== newValue[key]) {
                   return changeDetected++;
               }
             }
           }
         }
 
-        function $watchCollectionAction() {
-          var newLength, key;
+        function $watchCollectionAction(newChangeNumber, oldChangeNumber) {
+          if (!newChangeNumber || !oldChangeNumber) {
+            return;
+          }
 
-          newValue = objGetter(self);
+          /* TODO:
+           *
+           *  - Find a way to stop calling listener for no damned reason:
+           *    - Try checking newChangeNumber against oldChangeNumber
+           *    - If that doesn't work, try setting a boolean in watchCollectionWatch and testing it in watchCollectionAction
+           *
+           *  - Keep the types the same between oldCollection and newCollection.  If you can't find a good way to do that
+           *    in Angular, try setting the prototypes to be the same.  This isn't perfect (the objects won't have internal
+           *    state), but it's closer.  If neither of these work, you can try casting newCollection to the same type as oldCollection
+           *    and comparing them before calling listener.
+           */
+          var newLength, key, i;
 
           listener(newValue, oldValue, self);
 
@@ -427,7 +449,7 @@ function $RootScopeProvider(){
               oldValue.length = oldLength = newLength;
             }
             // copy the items to oldValue and look for changes.
-            for (var i = 0; i < newLength; i++) {
+            for (i = 0; i < newLength; i++) {
               if (oldValue[i] !== newValue[i]) {
                 oldValue[i] = newValue[i];
               }
